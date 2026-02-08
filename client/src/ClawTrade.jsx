@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import * as recharts from "recharts";
 import LandingPanel from "./components/LandingPanel.jsx";
 import AIAssistant from "./components/AIAssistant.jsx";
+import { OKX_COLORS } from "./theme/okx-colors.js";
 
 const { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = recharts;
 
@@ -330,8 +331,8 @@ export default function SimTradingPlatform() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(180deg, #0a0e17 0%, #0d1320 50%, #0a0e17 100%)",
-      color: "#e2e8f0",
+      background: OKX_COLORS.bg.main,
+      color: OKX_COLORS.text.primary,
       fontFamily: "'JetBrains Mono', 'Noto Sans SC', monospace",
       position: "relative",
       overflow: "hidden",
@@ -340,28 +341,28 @@ export default function SimTradingPlatform() {
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #0a0e17; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 2px; }
+        ::-webkit-scrollbar-track { background: ${OKX_COLORS.bg.main}; }
+        ::-webkit-scrollbar-thumb { background: ${OKX_COLORS.border.default}; border-radius: 2px; }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes glow { 0%,100% { box-shadow: 0 0 5px rgba(0,240,255,0.1); } 50% { box-shadow: 0 0 20px rgba(0,240,255,0.15); } }
+        @keyframes glow { 0%,100% { box-shadow: 0 0 5px ${OKX_COLORS.primaryLight}; } 50% { box-shadow: 0 0 20px ${OKX_COLORS.primaryBorder}; } }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
         .grid-bg {
           position: fixed; inset: 0; pointer-events: none; z-index: 0;
-          background-image: 
-            linear-gradient(rgba(0,240,255,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,240,255,0.02) 1px, transparent 1px);
+          background-image:
+            linear-gradient(${OKX_COLORS.border.light} 1px, transparent 1px),
+            linear-gradient(90deg, ${OKX_COLORS.border.light} 1px, transparent 1px);
           background-size: 40px 40px;
         }
         .scan-line {
           position: fixed; left: 0; right: 0; height: 1px; z-index: 0; pointer-events: none;
-          background: linear-gradient(90deg, transparent, rgba(0,240,255,0.06), transparent);
+          background: linear-gradient(90deg, transparent, ${OKX_COLORS.primaryLight}, transparent);
           animation: scan 8s linear infinite;
         }
         .card {
-          background: rgba(13,19,32,0.8);
-          border: 1px solid rgba(0,240,255,0.08);
+          background: ${OKX_COLORS.bg.card};
+          border: 1px solid ${OKX_COLORS.border.default};
           border-radius: 8px;
           backdrop-filter: blur(12px);
           transition: border-color 0.3s, box-shadow 0.3s;
@@ -380,20 +381,19 @@ export default function SimTradingPlatform() {
         .coin-row.selected { background: rgba(0,240,255,0.06); border-left: 2px solid #00f0ff; }
         .btn {
           padding: 8px 16px;
-          border-radius: 6px;
+          border-radius: 4px;
           border: none;
           cursor: pointer;
           font-family: inherit;
-          font-weight: 600;
+          font-weight: 500;
           font-size: 13px;
           transition: all 0.2s;
-          letter-spacing: 0.5px;
         }
-        .btn-buy { background: #00c853; color: #000; }
-        .btn-buy:hover { background: #00e676; box-shadow: 0 0 20px rgba(0,200,83,0.3); }
-        .btn-sell { background: #ff1744; color: #fff; }
-        .btn-sell:hover { background: #ff5252; box-shadow: 0 0 20px rgba(255,23,68,0.3); }
-        .btn-ghost { background: transparent; color: #64748b; border: 1px solid #1e293b; }
+        .btn-buy { background: ${OKX_COLORS.success}; color: #fff; }
+        .btn-buy:hover { background: ${OKX_COLORS.successHover}; }
+        .btn-sell { background: ${OKX_COLORS.danger}; color: #fff; }
+        .btn-sell:hover { background: ${OKX_COLORS.dangerHover}; }
+        .btn-ghost { background: transparent; color: ${OKX_COLORS.text.secondary}; border: 1px solid ${OKX_COLORS.border.default}; }
         .btn-ghost:hover { color: #e2e8f0; border-color: #334155; }
         .btn-ghost.active { color: #00f0ff; border-color: #00f0ff; background: rgba(0,240,255,0.05); }
         .tab { padding: 10px 20px; border: none; background: transparent; color: #64748b; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; }

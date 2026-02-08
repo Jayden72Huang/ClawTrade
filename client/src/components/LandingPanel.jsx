@@ -1,4 +1,5 @@
 import React from 'react';
+import { OKX_COLORS } from '../theme/okx-colors.js';
 
 /**
  * Landing Panel - 平台介绍和快速导航组件
@@ -44,18 +45,15 @@ export default function LandingPanel({
       {/* 欢迎卡片 */}
       <div style={{
         padding: "24px",
-        background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(236,72,153,0.1))",
-        border: "1px solid rgba(0,240,255,0.15)",
-        borderRadius: "12px",
-        backdropFilter: "blur(16px)"
+        background: OKX_COLORS.bg.card,
+        border: `1px solid ${OKX_COLORS.border.default}`,
+        borderRadius: "8px"
       }}>
         <h2 style={{
           margin: "0 0 8px 0",
           fontSize: "24px",
           fontWeight: "700",
-          background: "linear-gradient(135deg, #00f0ff, #8b5cf6)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
+          color: OKX_COLORS.text.primary,
           letterSpacing: "0.5px"
         }}>
           欢迎来到 ClawTrade 🚀
@@ -63,7 +61,7 @@ export default function LandingPanel({
         <p style={{
           margin: 0,
           fontSize: "14px",
-          color: "#94a3b8",
+          color: OKX_COLORS.text.secondary,
           lineHeight: "1.6"
         }}>
           加密货币模拟交易平台
@@ -73,19 +71,18 @@ export default function LandingPanel({
       {/* 资产总览卡片 */}
       <div style={{
         padding: "20px",
-        background: "rgba(13,19,32,0.8)",
-        border: "1px solid rgba(0,240,255,0.08)",
-        borderRadius: "8px",
-        backdropFilter: "blur(12px)"
+        background: OKX_COLORS.bg.card,
+        border: `1px solid ${OKX_COLORS.border.default}`,
+        borderRadius: "8px"
       }}>
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: "12px", color: "#64748b", marginBottom: 4 }}>
+          <div style={{ fontSize: "12px", color: OKX_COLORS.text.secondary, marginBottom: 4 }}>
             总资产
           </div>
           <div style={{
             fontSize: "28px",
             fontWeight: "700",
-            color: "#e2e8f0",
+            color: OKX_COLORS.text.primary,
             fontFamily: "'Orbitron', monospace"
           }}>
             {fmt(totalAssets)}
@@ -187,7 +184,7 @@ export default function LandingPanel({
           onClick={onStartTrading}
           style={{
             padding: "14px 20px",
-            background: "linear-gradient(135deg, #00c853, #00e676)",
+            background: OKX_COLORS.success,
             border: "none",
             borderRadius: "8px",
             color: "#fff",
@@ -214,7 +211,7 @@ export default function LandingPanel({
           onClick={onRequestAI}
           style={{
             padding: "12px 20px",
-            background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
+            background: OKX_COLORS.primary,
             border: "none",
             borderRadius: "8px",
             color: "#fff",

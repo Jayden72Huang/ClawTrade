@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getOpenClawSuggestion } from '../api.js';
+import { OKX_COLORS } from '../theme/okx-colors.js';
 
 /**
  * AI Assistant - 智能客服组件
