@@ -1,10 +1,25 @@
 import { Router } from 'express';
+import type { Position } from '@prisma/client';
 import prisma from '../db.js';
 import { getAllPrices } from '../priceService.js';
 
 const router = Router();
 
 const INITIAL_CASH = 100000;
+
+type PositionWithValue = {
+  symbol: string;
+  coinId: string;
+  name: string;
+  icon: string;
+  amount: number;
+  avgCost: number;
+  totalCost: number;
+  currentPrice: number;
+  currentValue: number;
+  pnl: number;
+  pnlPct: number;
+};
 
 // 获取或创建 demo 用户
 async function getDemoUser() {
@@ -36,7 +51,7 @@ router.get('/', async (req, res) => {
     const prices = await getAllPrices();
 
     // 计算持仓价值
-    const positionsWithValue = positions.map(pos => {
+    const positionsWithValue: PositionWithValue[] = positions.map((pos: Position): PositionWithValue => {
       const coinPrice = prices[pos.coinId]?.usd || parseFloat(pos.avgCost.toString());
       const amount = parseFloat(pos.amount.toString());
       const avgCost = parseFloat(pos.avgCost.toString());

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Trade } from '@prisma/client';
 import prisma from '../db.js';
 import { getCoinPrice } from '../priceService.js';
 
@@ -259,7 +260,7 @@ router.get('/history', async (req, res) => {
 
     res.json({
       success: true,
-      trades: trades.map(t => ({
+      trades: trades.map((t: Trade) => ({
         id: t.id,
         type: t.type.toLowerCase(),
         symbol: t.symbol,
