@@ -5,6 +5,8 @@ import tradeRoutes from './routes/trade.js';
 import portfolioRoutes from './routes/portfolio.js';
 import marketRoutes from './routes/market.js';
 import openclawRoutes from './routes/openclaw.js';
+import analysisRoutes from './routes/analysis.js';
+import authRoutes from './routes/auth.js';
 
 // 加载环境变量
 dotenv.config();
@@ -37,10 +39,12 @@ app.get('/health', (req, res) => {
 });
 
 // API 路由
+app.use('/api/auth', authRoutes);
 app.use('/api/trade', tradeRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/openclaw', openclawRoutes);
+app.use('/api/analysis', analysisRoutes);
 
 // 404 处理
 app.use((req, res) => {
@@ -72,6 +76,8 @@ app.listen(PORT, () => {
 
 📊 可用接口:
   - GET  /health              健康检查
+  - POST /api/auth/init       初始化用户
+  - GET  /api/auth/verify     验证用户
   - GET  /api/market/prices   获取价格
   - POST /api/trade/buy       买入
   - POST /api/trade/sell      卖出
@@ -79,6 +85,8 @@ app.listen(PORT, () => {
   - GET  /api/portfolio       持仓概览
   - POST /api/openclaw/suggest AI建议
   - GET  /api/openclaw/status  Agent状态
+  - POST /api/analysis/crypto  深度分析
+  - GET  /api/analysis/status  分析服务状态
   `);
 });
 

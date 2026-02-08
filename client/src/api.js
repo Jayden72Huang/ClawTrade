@@ -89,3 +89,25 @@ export async function checkOpenClawStatus() {
   const res = await fetch(`${API_BASE_URL}/api/openclaw/status`);
   return res.json();
 }
+
+/**
+ * 深度分析加密货币
+ */
+export async function analyzeCrypto(symbol, query) {
+  const res = await fetch(`${API_BASE_URL}/api/analysis/crypto`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbol, query })
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || '分析失败');
+  return data;
+}
+
+/**
+ * 获取支持的分析币种
+ */
+export async function getSupportedAssets() {
+  const res = await fetch(`${API_BASE_URL}/api/analysis/supported-assets`);
+  return res.json();
+}
