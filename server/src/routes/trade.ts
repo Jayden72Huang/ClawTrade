@@ -5,17 +5,20 @@ import { getCoinPrice } from '../priceService.js';
 
 const router = Router();
 
-// 获取或创建 demo 用户
-async function getDemoUser() {
+// 获取或创建用户（根据 userId）
+async function getDemoUser(userId?: string) {
+  // 使用传入的 userId 或默认 demo_user
+  const username = userId ? `demo_${userId}` : 'demo_user';
+
   let user = await prisma.user.findUnique({
-    where: { username: 'demo_user' }
+    where: { username }
   });
 
   if (!user) {
     user = await prisma.user.create({
-      data: { username: 'demo_user', currentCash: 100000 }
+      data: { username, currentCash: 100000 }
     });
-    console.log('✅ 创建 demo 用户，初始资金: $100,000');
+    console.log(`✅ 创建新用户 ${username}，初始资金: $100,000`);
   }
 
   return user;
@@ -27,7 +30,7 @@ async function getDemoUser() {
  */
 router.post('/buy', async (req, res) => {
   try {
-    const { coin_id, symbol, name, icon, amount_usd, source = 'WEB' } = req.body;
+    const { coin_id, symbol, name, icon, amount_usd, source = 'WEB', userId } = req.body;
 
     // 验证参数
     if (!coin_id || !symbol || !amount_usd || amount_usd <= 0) {
@@ -37,8 +40,8 @@ router.post('/buy', async (req, res) => {
       });
     }
 
-    // 获取用户
-    const user = await getDemoUser();
+    // 获取用户（使用前端传来的 userId）
+    const user = await getDemoUser(userId);
 
     // 检查余额
     const cashNum = parseFloat(user.currentCash.toString());
@@ -144,7 +147,7 @@ router.post('/buy', async (req, res) => {
  */
 router.post('/sell', async (req, res) => {
   try {
-    const { coin_id, symbol, amount_usd, source = 'WEB' } = req.body;
+    const { coin_id, symbol, amount_usd, source = 'WEB', userId } = req.body;
 
     if (!coin_id || !symbol || !amount_usd || amount_usd <= 0) {
       return res.status(400).json({
@@ -153,7 +156,7 @@ router.post('/sell', async (req, res) => {
       });
     }
 
-    const user = await getDemoUser();
+    const user = await getDemoUser(userId);
 
     // 查找持仓
     const position = await prisma.position.findUnique({
@@ -250,7 +253,8 @@ router.post('/sell', async (req, res) => {
  */
 router.get('/history', async (req, res) => {
   try {
-    const user = await getDemoUser();
+    const userId = req.query.userId as string | undefined;
+    const user = await getDemoUser(userId);
 
     const trades = await prisma.trade.findMany({
       where: { userId: user.id },

@@ -4,7 +4,7 @@ import LandingPanel from "./components/LandingPanel.jsx";
 import AIAssistant from "./components/AIAssistant.jsx";
 import { OKX_COLORS } from "./theme/okx-colors.js";
 
-const { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = recharts;
+const { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Scatter, ReferenceDot } = recharts;
 
 // ============================================================
 // CONFIG
@@ -58,9 +58,15 @@ const ts = () => new Date().toLocaleString("zh-CN", { hour12: false });
 // ============================================================
 function genSparkline(base, volatility = 0.02, pts = 24) {
   let price = base;
+  const now = Date.now();
+  const interval = 3600000; // 1小时间隔
   return Array.from({ length: pts }, (_, i) => {
     price *= 1 + (Math.random() - 0.48) * volatility;
-    return { t: i, p: price };
+    return {
+      t: now - (pts - i) * interval,  // 真实时间戳
+      time: new Date(now - (pts - i) * interval).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      p: price
+    };
   });
 }
 
@@ -130,11 +136,21 @@ export default function SimTradingPlatform() {
       if (!res.ok) throw new Error();
       const data = await res.json();
       const sp = {};
+      const now = Date.now();
+      const weekAgo = now - 7 * 24 * 3600000;
       data.forEach(coin => {
         if (coin.sparkline_in_7d?.price) {
           const arr = coin.sparkline_in_7d.price;
           const step = Math.max(1, Math.floor(arr.length / 30));
-          sp[coin.id] = arr.filter((_, i) => i % step === 0).map((p, i) => ({ t: i, p }));
+          const filtered = arr.filter((_, i) => i % step === 0);
+          sp[coin.id] = filtered.map((p, i) => {
+            const timestamp = weekAgo + (i / filtered.length) * 7 * 24 * 3600000;
+            return {
+              t: timestamp,
+              time: new Date(timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+              p
+            };
+          });
         }
       });
       setSparklines(sp);
@@ -662,23 +678,71 @@ export default function SimTradingPlatform() {
                 </div>
 
                 {/* Chart */}
-                <div style={{ height: 240 }}>
+                <div style={{ height: 280 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={sparklines[selectedCoin.id] || genSparkline(prices[selectedCoin.id]?.usd || 100)}>
                       <defs>
                         <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#00f0ff" stopOpacity={0.2} />
-                          <stop offset="100%" stopColor="#00f0ff" stopOpacity={0} />
+                          <stop offset="0%" stopColor={OKX_COLORS.primary} stopOpacity={0.2} />
+                          <stop offset="100%" stopColor={OKX_COLORS.primary} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <XAxis dataKey="t" hide />
-                      <YAxis hide domain={["auto", "auto"]} />
-                      <Tooltip
-                        contentStyle={{ background: "#0d1320", border: "1px solid #1e293b", borderRadius: 6, fontSize: 12 }}
-                        labelStyle={{ display: "none" }}
-                        formatter={(v) => [fmt(v), "价格"]}
+                      <XAxis
+                        dataKey="time"
+                        stroke={OKX_COLORS.text.tertiary}
+                        tick={{ fill: OKX_COLORS.text.secondary, fontSize: 11 }}
+                        tickLine={{ stroke: OKX_COLORS.border.default }}
+                        axisLine={{ stroke: OKX_COLORS.border.default }}
                       />
-                      <Area type="monotone" dataKey="p" stroke="#00f0ff" strokeWidth={2} fill="url(#chartGrad)" dot={false} />
+                      <YAxis
+                        stroke={OKX_COLORS.text.tertiary}
+                        tick={{ fill: OKX_COLORS.text.secondary, fontSize: 11 }}
+                        tickLine={{ stroke: OKX_COLORS.border.default }}
+                        axisLine={{ stroke: OKX_COLORS.border.default }}
+                        domain={["auto", "auto"]}
+                        tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: OKX_COLORS.bg.card,
+                          border: `1px solid ${OKX_COLORS.border.default}`,
+                          borderRadius: 4,
+                          fontSize: 12,
+                          color: OKX_COLORS.text.primary
+                        }}
+                        labelFormatter={(label) => `时间: ${label}`}
+                        formatter={(value) => [fmt(value), "价格"]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="p"
+                        stroke={OKX_COLORS.primary}
+                        strokeWidth={2}
+                        fill="url(#chartGrad)"
+                        dot={false}
+                      />
+                      {/* 交易标记点 */}
+                      {history
+                        .filter(h => h.symbol === selectedCoin.symbol)
+                        .slice(0, 10) // 只显示最近10笔
+                        .map((trade, idx) => {
+                          const chartData = sparklines[selectedCoin.id] || genSparkline(prices[selectedCoin.id]?.usd || 100);
+                          const lastPoint = chartData[chartData.length - 1];
+                          if (!lastPoint) return null;
+
+                          return (
+                            <ReferenceDot
+                              key={trade.id}
+                              x={lastPoint.time}
+                              y={trade.price}
+                              r={6}
+                              fill={trade.type === "buy" ? OKX_COLORS.success : OKX_COLORS.danger}
+                              stroke="#fff"
+                              strokeWidth={2}
+                            />
+                          );
+                        })
+                      }
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>

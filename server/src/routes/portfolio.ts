@@ -21,16 +21,20 @@ type PositionWithValue = {
   pnlPct: number;
 };
 
-// 获取或创建 demo 用户
-async function getDemoUser() {
+// 获取或创建用户（根据 userId）
+async function getDemoUser(userId?: string) {
+  // 使用传入的 userId 或默认 demo_user
+  const username = userId ? `demo_${userId}` : 'demo_user';
+
   let user = await prisma.user.findUnique({
-    where: { username: 'demo_user' }
+    where: { username }
   });
 
   if (!user) {
     user = await prisma.user.create({
-      data: { username: 'demo_user', currentCash: INITIAL_CASH }
+      data: { username, currentCash: INITIAL_CASH }
     });
+    console.log(`✅ 创建新用户 ${username}，初始资金: $${INITIAL_CASH}`);
   }
 
   return user;
@@ -42,7 +46,8 @@ async function getDemoUser() {
  */
 router.get('/', async (req, res) => {
   try {
-    const user = await getDemoUser();
+    const userId = req.query.userId as string | undefined;
+    const user = await getDemoUser(userId);
     const positions = await prisma.position.findMany({
       where: { userId: user.id }
     });

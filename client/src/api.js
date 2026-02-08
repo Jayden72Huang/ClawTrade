@@ -1,4 +1,6 @@
 // ClawTrade API 客户端
+import { getUserId } from './userSession.js';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
@@ -17,7 +19,10 @@ export async function buyTrade(params) {
   const res = await fetch(`${API_BASE_URL}/api/trade/buy`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params)
+    body: JSON.stringify({
+      ...params,
+      userId: getUserId() // 自动添加用户ID
+    })
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.message);
@@ -31,7 +36,10 @@ export async function sellTrade(params) {
   const res = await fetch(`${API_BASE_URL}/api/trade/sell`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params)
+    body: JSON.stringify({
+      ...params,
+      userId: getUserId() // 自动添加用户ID
+    })
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.message);
@@ -42,7 +50,8 @@ export async function sellTrade(params) {
  * 获取持仓
  */
 export async function fetchPortfolio() {
-  const res = await fetch(`${API_BASE_URL}/api/portfolio`);
+  const userId = getUserId();
+  const res = await fetch(`${API_BASE_URL}/api/portfolio?userId=${userId}`);
   const data = await res.json();
   if (!data.success) throw new Error(data.message || '获取持仓失败');
   return data;
@@ -52,7 +61,8 @@ export async function fetchPortfolio() {
  * 获取交易历史
  */
 export async function fetchTradeHistory() {
-  const res = await fetch(`${API_BASE_URL}/api/trade/history`);
+  const userId = getUserId();
+  const res = await fetch(`${API_BASE_URL}/api/trade/history?userId=${userId}`);
   const data = await res.json();
   if (!data.success) throw new Error(data.message || '获取历史失败');
   return data.trades;
