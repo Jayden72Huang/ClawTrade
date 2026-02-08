@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as recharts from "recharts";
 import * as api from './api.js';
+import { getUserIdSync, getUserDisplayName } from './userSession.js';
 
 const { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = recharts;
 
@@ -77,6 +78,7 @@ export default function ClawTradeV2() {
   const [tradeSuccess, setTradeSuccess] = useState(null);
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [showAiPanel, setShowAiPanel] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   // ------ 从后端获取价格 ------
   const fetchPrices = useCallback(async () => {
@@ -160,6 +162,10 @@ export default function ClawTradeV2() {
 
   // ------ EFFECTS ------
   useEffect(() => {
+    // 获取用户ID
+    const id = getUserIdSync();
+    setUserId(id);
+
     fetchPrices();
     loadPortfolio();
     loadHistory();
@@ -483,6 +489,13 @@ export default function ClawTradeV2() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1 }}>用户ID</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "#00f0ff", fontFamily: "'JetBrains Mono', monospace" }}>
+              {userId || '---'}
+            </div>
+          </div>
+          <div style={{ width: 1, height: 32, background: "#1e293b" }} />
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1 }}>总资产</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: totalPnL >= 0 ? "#00e676" : "#ff5252", fontFamily: "'Orbitron', sans-serif" }}>
