@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as recharts from "recharts";
+import LandingPanel from "./components/LandingPanel.jsx";
+import AIAssistant from "./components/AIAssistant.jsx";
 
 const { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = recharts;
 
@@ -512,7 +514,26 @@ export default function SimTradingPlatform() {
         
         {/* ========== MARKET TAB ========== */}
         {activeTab === "market" && (
-          <div style={{ animation: "fadeIn 0.3s" }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "300px 1fr",
+            gap: 16,
+            animation: "fadeIn 0.3s"
+          }}>
+            {/* 左侧：Landing Panel */}
+            <LandingPanel
+              cash={cash}
+              totalAssets={totalAssets}
+              totalPnL={totalPnL}
+              totalPnLPct={totalPnLPct}
+              onStartTrading={() => setActiveTab("trade")}
+              onRequestAI={() => {
+                // 打开 AI 客服（AI 客服组件会自动处理）
+                // 这里可以选择性地设置一些状态
+              }}
+            />
+
+            {/* 右侧：行情列表 */}
             <div className="card" style={{ overflow: "hidden" }}>
               {/* Table header */}
               <div style={{
@@ -1108,6 +1129,24 @@ export default function SimTradingPlatform() {
         <div>SIM TRADE · 模拟交易平台 · 仅供学习使用，不构成投资建议</div>
         <div>行情数据来源: CoinGecko · 30秒刷新</div>
       </footer>
+
+      {/* AI 客服 - 固定右下角 */}
+      <AIAssistant
+        prices={prices}
+        cash={cash}
+        positions={positions}
+        coins={COINS}
+        onTrade={(action, coinId, symbol, amount) => {
+          // 设置选中的币种和交易类型
+          const coin = COINS.find(c => c.id === coinId);
+          if (coin) {
+            setSelectedCoin(coin);
+            setTradeType(action);
+            setTradeAmount(amount.toString());
+            setActiveTab("trade");
+          }
+        }}
+      />
     </div>
   );
 }
