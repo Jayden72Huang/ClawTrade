@@ -56,15 +56,44 @@ const ts = () => new Date().toLocaleString("zh-CN", { hour12: false });
 // ============================================================
 // SIMULATED SPARKLINE DATA (fallback)
 // ============================================================
-function genSparkline(base, volatility = 0.02, pts = 24) {
+function genSparkline(base, volatility = 0.02, timeframe = "1H") {
   let price = base;
   const now = Date.now();
-  const interval = 3600000; // 1小时间隔
+
+  // 根据时间维度确定数据点数和时间间隔
+  const timeframeConfig = {
+    "1M": { points: 60, interval: 60000, format: "HH:mm:ss" },      // 1分钟，显示秒
+    "5M": { points: 60, interval: 300000, format: "HH:mm" },        // 5分钟
+    "15M": { points: 60, interval: 900000, format: "HH:mm" },       // 15分钟
+    "1H": { points: 48, interval: 3600000, format: "HH:mm" },       // 1小时
+    "4H": { points: 42, interval: 14400000, format: "MM-DD HH:mm" }, // 4小时
+    "1D": { points: 30, interval: 86400000, format: "MM-DD" },      // 1天
+    "1W": { points: 24, interval: 604800000, format: "MM-DD" }      // 1周
+  };
+
+  const config = timeframeConfig[timeframe] || timeframeConfig["1H"];
+  const pts = config.points;
+  const interval = config.interval;
+
   return Array.from({ length: pts }, (_, i) => {
     price *= 1 + (Math.random() - 0.48) * volatility;
+    const timestamp = now - (pts - i) * interval;
+    const date = new Date(timestamp);
+
+    let timeStr;
+    if (config.format === "HH:mm:ss") {
+      timeStr = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } else if (config.format === "HH:mm") {
+      timeStr = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    } else if (config.format === "MM-DD HH:mm") {
+      timeStr = `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    } else {
+      timeStr = `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    }
+
     return {
-      t: now - (pts - i) * interval,  // 真实时间戳
-      time: new Date(now - (pts - i) * interval).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      t: timestamp,
+      time: timeStr,
       p: price
     };
   });
@@ -88,6 +117,7 @@ export default function SimTradingPlatform() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tradeSuccess, setTradeSuccess] = useState(null);
+  const [timeframe, setTimeframe] = useState("1H"); // 时间维度：1M, 5M, 15M, 1H, 4H, 1D, 1W
   const prevPrices = useRef({});
 
   // ------ FETCH PRICES ------
@@ -664,23 +694,65 @@ export default function SimTradingPlatform() {
                     <div style={{
                       fontSize: 28, fontWeight: 700,
                       fontFamily: "'Orbitron', sans-serif",
-                      color: (prices[selectedCoin.id]?.usd_24h_change || 0) >= 0 ? "#00e676" : "#ff5252",
+                      color: (prices[selectedCoin.id]?.usd_24h_change || 0) >= 0 ? OKX_COLORS.success : OKX_COLORS.danger,
                     }}>
                       {fmt(prices[selectedCoin.id]?.usd, prices[selectedCoin.id]?.usd < 1 ? 4 : 2)}
                     </div>
                     <div style={{
                       fontSize: 14, fontWeight: 600,
-                      color: (prices[selectedCoin.id]?.usd_24h_change || 0) >= 0 ? "#00c853" : "#ff1744",
+                      color: (prices[selectedCoin.id]?.usd_24h_change || 0) >= 0 ? OKX_COLORS.success : OKX_COLORS.danger,
                     }}>
                       {fmtPct(prices[selectedCoin.id]?.usd_24h_change)}
                     </div>
                   </div>
                 </div>
 
+                {/* 时间维度切换 */}
+                <div style={{
+                  display: "flex",
+                  gap: 4,
+                  marginBottom: 12,
+                  padding: 4,
+                  background: OKX_COLORS.bg.secondary,
+                  borderRadius: 4,
+                  border: `1px solid ${OKX_COLORS.border.default}`
+                }}>
+                  {["1M", "5M", "15M", "1H", "4H", "1D", "1W"].map(tf => (
+                    <button
+                      key={tf}
+                      onClick={() => setTimeframe(tf)}
+                      style={{
+                        flex: 1,
+                        padding: "6px 8px",
+                        background: timeframe === tf ? OKX_COLORS.primary : "transparent",
+                        border: "none",
+                        borderRadius: 4,
+                        color: timeframe === tf ? "#fff" : OKX_COLORS.text.secondary,
+                        fontSize: 12,
+                        fontWeight: timeframe === tf ? "600" : "400",
+                        cursor: "pointer",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={e => {
+                        if (timeframe !== tf) {
+                          e.currentTarget.style.background = OKX_COLORS.bg.hover;
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (timeframe !== tf) {
+                          e.currentTarget.style.background = "transparent";
+                        }
+                      }}
+                    >
+                      {tf}
+                    </button>
+                  ))}
+                </div>
+
                 {/* Chart */}
                 <div style={{ height: 280 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={sparklines[selectedCoin.id] || genSparkline(prices[selectedCoin.id]?.usd || 100)}>
+                    <AreaChart data={sparklines[selectedCoin.id] || genSparkline(prices[selectedCoin.id]?.usd || 100, 0.02, timeframe)}>
                       <defs>
                         <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor={OKX_COLORS.primary} stopOpacity={0.2} />
